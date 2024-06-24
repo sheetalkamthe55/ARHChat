@@ -12,7 +12,7 @@ services:
       - 27017:27017
   streamlit:
     build:
-      dockerfile: Dockerfile-gpu
+      dockerfile: Dockerfile
     depends_on:
       - mongo-express
     deploy:
