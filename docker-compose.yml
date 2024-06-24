@@ -53,8 +53,8 @@ services:
               count: 'all'
     environment:
       CUDA_VISIBLE_DEVICES: 1
-    command: ["--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port", "8009", "--host", "129.69.217.24", "--n_ctx", "8000", "--chat_format", "chatml"]
+    command: ["--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port", "8000", "--host", "129.69.217.24", "--n_ctx", "8000", "--chat_format", "chatml"]
     ports:
-      - "8009:8009"
+      - "8000:8000"
     volumes:
       - /tmp/llama_index/models:/tmp/llama_index/models
