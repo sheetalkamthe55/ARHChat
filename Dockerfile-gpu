@@ -8,7 +8,7 @@ RUN apt-get install -y curl git python3-pip python3-dev python-is-python3
 RUN rm -rf /var/lib/apt/lists/*
 
 # clone streamlit app
-RUN git clone https://github.com/abc.git
+RUN git clone https://github.com/sheetalkamthe55/ARHChat.git
 RUN pip install gnews
 # exclude gnews because of requests dependency
 RUN curl -s https://raw.githubusercontent.com/abc/main/requirements.txt | grep -v gnews | xargs pip install
