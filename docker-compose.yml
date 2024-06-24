@@ -25,6 +25,8 @@ services:
       - ./qdrant_data:/qdrant_data
   llama_cpp_server:
     image: python:3.10.12 
+    environment:
+      CUDA_VISIBLE_DEVICES: 1
     command: ["python3", "-m", "llama_cpp.server", "--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port", "8009", "--host", "0.0.0.0", "--n_ctx", "8000", "--chat_format", "chatml"]
     ports:
       - "8009:8009"
@@ -32,16 +34,16 @@ services:
       - ./tmp/llama_index/models:/tmp/llama_index/models
   streamlit:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-gpu
     depends_on:
       - mongo-express
-    # deploy:
-    #   resources:
-        # reservations:
-        #   devices:
-        #     - driver: nvidia
-        #       capabilities: [gpu]
-        #       count: 'all'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: 'all'
     working_dir: /app/ARHChat
     ports:
       - 8503:8503
