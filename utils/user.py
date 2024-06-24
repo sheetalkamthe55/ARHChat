@@ -39,6 +39,22 @@ def setup_metadata():
             .values[0],
         )
 
+    if "author_name" not in server_state:
+        update_server_state(
+            "author_name",
+            st.session_state["db_info"]
+            .loc[lambda x: x.field == "author_name", "value"]
+            .values[0],
+        )
+
+    if "author_email" not in server_state:
+        update_server_state(
+            "author_email",
+            st.session_state["db_info"]
+            .loc[lambda x: x.field == "author_email", "value"]
+            .values[0],
+        )
+
 def clear_models():
     if f'model_{st.session_state["db_name"]}' in server_state:
         try:
