@@ -38,12 +38,18 @@ services:
     ports:
       - 8503:8503
     volumes:
-      - /Users/sheetalkamthe/Documents/Thesis/Project/ARHChat/metadata:/app/ARHChat/metadata
-      - /Users/sheetalkamthe/Documents/Thesis/Project/ARHChat/.streamlit/secrets.toml:/app/ARHChat/.streamlit/secrets.toml
+      - ~/Project/ARHChat/metadata:/app/ARHChat/metadata
+      - ~/Project/ARHChat/.streamlit/secrets.toml:/app/ARHChat/.streamlit/secrets.toml
     command: ["streamlit", "run", "app.py", "--server.port=8503", "--server.address=0.0.0.0"]
   
   llama_cpp_server:
-    image: ghcr.io/allenporter/llama-cpp-server-cuda	
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: 'all'
     environment:
       CUDA_VISIBLE_DEVICES: 1
     command: ["python3", "-m", "llama_cpp.server", "--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port", "8009", "--host", "0.0.0.0", "--n_ctx", "8000", "--chat_format", "chatml"]
