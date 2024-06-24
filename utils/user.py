@@ -13,47 +13,83 @@ def update_server_state(key, value):
             server_state[key] = value
 
 def setup_metadata():
-    "read in local metadata utils"
-    if "db_info" not in st.session_state:
-        st.session_state["db_info"] = pd.read_csv("metadata/settings.csv")
+    try:
+        if "db_info" not in st.session_state:
+            st.session_state["db_info"] = pd.read_csv("metadata/settings.csv")
 
-    if "db_password" not in st.session_state:
-        st.session_state["db_password"] = (
-            st.session_state["db_info"]
-            .loc[lambda x: x.field == "password", "value"]
-            .values[0]
-        )
+        if "mongodbURI" not in server_state:
+            update_server_state(
+                "mongodbURI",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "mongodbURI", "value"]
+                .values[0],
+            )
 
-    if "db_user" not in st.session_state:
-        st.session_state["db_user"] = (
-            st.session_state["db_info"]
-            .loc[lambda x: x.field == "username", "value"]
-            .values[0]
-        )
+        if "mongo_db_name" not in server_state:
+            update_server_state(
+                "mongo_db_name",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "mongo_db_name", "value"]
+                .values[0],
+            )
 
-    if "app_title" not in server_state:
-        update_server_state(
-            "app_title",
-            st.session_state["db_info"]
-            .loc[lambda x: x.field == "app_title", "value"]
-            .values[0],
-        )
+        if "app_title" not in server_state:
+            update_server_state(
+                "app_title",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "app_title", "value"]
+                .values[0],
+            )
 
-    if "author_name" not in server_state:
-        update_server_state(
-            "author_name",
-            st.session_state["db_info"]
-            .loc[lambda x: x.field == "author_name", "value"]
-            .values[0],
-        )
+        if "inference_server_url" not in server_state:
+            update_server_state(
+                "inference_server_url",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "inference_server_url", "value"]
+                .values[0],
+            )
 
-    if "author_email" not in server_state:
-        update_server_state(
-            "author_email",
-            st.session_state["db_info"]
-            .loc[lambda x: x.field == "author_email", "value"]
-            .values[0],
-        )
+        if "qdranthost" not in server_state:
+            update_server_state(
+                "qdranthost",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "qdranthost", "value"]
+                .values[0],
+            )
+
+        if "qdrantport" not in server_state:
+            update_server_state(
+                "qdrantport",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "qdrantport", "value"]
+                .values[0],
+            )
+
+        if "vector_collectionname" not in server_state:
+            update_server_state(
+                "vector_collectionname",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "vector_collectionname", "value"]
+                .values[0],
+            )
+
+        if "embeddingmodelname" not in server_state:
+            update_server_state(
+                "embeddingmodelname",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "embeddingmodelname", "value"]
+                .values[0],
+            )
+
+        if "history_collectionname" not in server_state:
+            update_server_state(
+                "history_collectionname",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "history_collectionname", "value"]
+                .values[0],
+            )
+    except Exception as e:
+        st.write(f"failed to get the metadata, please check the metadata file: {e}")
 
 def clear_models():
     if f'model_{st.session_state["db_name"]}' in server_state:

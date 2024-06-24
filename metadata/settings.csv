@@ -1,20 +1,12 @@
 field,value
-host,localhost
-port,5432
-username,admin
-password,admin
-master_db_name,vector_db
-restore_db,0
-dump_on_exit,0
-corpora_location,/app/streamlit_rag/corpora/
+mongodbURI,mongodb://localhost:27017
+mongo_db_name,ARH_chatbot
+inference_server_url,http://129.69.217.24:8009/v1
+qdranthost,129.69.217.24
+qdrantport,6333
+embeddingmodelname,sentence-transformers/all-mpnet-base-v2
+vector_collectionname,ARH_Tool
+history_collectionname,chat_history
 app_title,Architecture Refactoring AI Helper
-author_name,Author
-author_email,someone@example.com
-non_rag_system_prompt,You are a chatbot.
 rag_system_prompt,"You are a chatbot specialized in answering questions in context concisely. If you cannot find the answer to a query in the provided context, say you cannot answer or provide related information that is in the context. Do not make up answers that are not contained in the context."
 context_prompt,Here is the context:  {context_str}
-similarity_top_k,7
-temperature,0
-max_new_tokens,512
-chunk_overlap,150
-chunk_size,384

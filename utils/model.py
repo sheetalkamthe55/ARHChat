@@ -19,9 +19,8 @@ from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Qdrant
 
 
-MONGODB_URI = "mongodb://localhost:27017"
-# "postgresql://postgres:secret@localhost:5432/postgres"
-DB_NAME = "ARH_chatbot"
+MONGODB_URI = server_state["mongodbURI"]
+DB_NAME = server_state["mongo_db_name"]
 parse_output = StrOutputParser()
 retriever_output = None
 
@@ -32,20 +31,6 @@ def capture_output(output):
 
 def initialize_llm():
     "initialize the LLM model"
-    # # clear out existing models
-    # if "clear_llms" in st.session_state:
-    #     with no_rerun:
-    #         if st.session_state["clear_llms"]:
-    #             for llm_title in st.session_state["llm_dict"].loc[:, "name"].values:
-    #                 if llm_title in server_state:
-    #                     del server_state[llm_title]
-    #             gc.collect()
-
-    if f'{st.session_state["user_name"]}_selected_llm' in server_state:
-         llm_name = server_state[f'{st.session_state["user_name"]}_selected_llm']
-    else:
-         llm_name = ""
-    # if llm_name not in server_state:
     try:
         with st.spinner("Loading LLM..."):
             update_server_state(
@@ -57,7 +42,7 @@ def initialize_llm():
 
 def instantiate_llm():
     try:
-        inference_server_url = "http://129.69.217.24:8009/v1"
+        inference_server_url = server_state["inference_server_url"]
         kwargs = {
             k: v
             for k, v in [
@@ -77,42 +62,19 @@ def instantiate_llm():
 
 def initialize_retriever():
     try:
-        client = QdrantClient(host="129.69.217.24", port=6333)
-        embed_model= HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
-        qdrant = Qdrant(client=client, collection_name="ARH_Tool", embeddings=embed_model)
+        client = QdrantClient(host=server_state["qdranthost"], port=server_state["qdrantport"])
+        embed_model= HuggingFaceEmbeddings(model_name=server_state["embeddingmodelname"])
+        qdrant = Qdrant(client=client, collection_name=server_state["vector_collectionname"], embeddings=embed_model)
         retriever = qdrant.as_retriever()
         return retriever
     except Exception as e:
         st.write(
             f"failed to instantiate the retriever, please check the Qdrant server URL and the model path: {e}")
 
-# def setup_db(
-#     db_name="postgres",
-#     host="localhost",
-#     password="secret",
-#     port="5432",
-#     user="postgres",
-#     table_name="chat_history",
-#     clear_database=True,
-#     clear_table=True,
-# ):
-
-#     conn = psycopg.connect(
-#         dbname=db_name,
-#         host=host,
-#         password=password,
-#         port=port,
-#         user=user,
-#     )
-#     conn.autocommit = True
-#     PostgresChatMessageHistory.create_tables(conn, table_name)
-#     return conn
-
-
 def get_session_history(session_id: str,user_id: str) -> MongoDBChatMessageHistory:
         try:
             return MongoDBChatMessageHistory(MONGODB_URI, session_id,
-                                              user_id, database_name=DB_NAME, collection_name="chat_history")
+                                              user_id, database_name=DB_NAME, collection_name=server_state["history_collectionname"])
         except Exception as e:
             st.write(f"failed to get the session history, please check the MongoDB server URL and the model path: {e}")
 

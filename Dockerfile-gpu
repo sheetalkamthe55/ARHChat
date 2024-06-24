@@ -9,6 +9,4 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # clone streamlit app
 RUN git clone https://github.com/sheetalkamthe55/ARHChat.git
-RUN pip install gnews
-# exclude gnews because of requests dependency
-RUN curl -s https://raw.githubusercontent.com/abc/main/requirements.txt | grep -v gnews | xargs pip install
+RUN curl -s https://raw.githubusercontent.com/sheetalkamthe55/ARHChat/main/requirements.txt?token=GHSAT0AAAAAACTVPEVXMSJSPWCKUYTKAIBCZTZUUDQ | xargs pip install

@@ -7,9 +7,6 @@ import uuid
 from utils.model import get_session_history
 import json
 
-# MongoDB aggregation pipeline
-
-
 def generate_session_id():
     "generate a session id"
     st.session_state["session_id"] = str(uuid.uuid4())
@@ -176,10 +173,6 @@ def ui_export_chat_end_session():
     end_session = st.sidebar.button("End session", help="End your session.")
     if end_session:
         clear_models()
-
-        # reset parameters to defaults
-        del server_state[f'{st.session_state["user_name"]}_selected_llm']
-        
         update_server_state(
             f'{st.session_state["user_name"]} messages', []
         )  # reset user's message history
