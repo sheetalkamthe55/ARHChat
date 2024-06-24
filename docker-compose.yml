@@ -42,19 +42,19 @@ services:
       - ~/Project/ARHChat/.streamlit/secrets.toml:/app/ARHChat/.streamlit/secrets.toml
     command: ["streamlit", "run", "app.py", "--server.port=8503", "--server.address=0.0.0.0"]
   
-  llama_cpp_server:
-    image: ghcr.io/allenporter/llama-cpp-server-cuda
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
-              count: 'all'
-    environment:
-      CUDA_VISIBLE_DEVICES: 1
-    command: ["--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port=8009", "--host=129.69.217.24", "--n_ctx", "8000", "--chat_format", "chatml"]
-    ports:
-      - "8009:8009"
-    volumes:
-      - /tmp/llama_index/models:/tmp/llama_index/models
+  # llama_cpp_server:
+  #   image: ghcr.io/allenporter/llama-cpp-server-cuda
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             capabilities: [gpu]
+  #             count: 'all'
+  #   environment:
+  #     CUDA_VISIBLE_DEVICES: 1
+  #   command: ["--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port=8009", "--host=129.69.217.24", "--n_ctx", "8000", "--chat_format", "chatml"]
+  #   ports:
+  #     - "8009:8009"
+  #   volumes:
+  #     - /tmp/llama_index/models:/tmp/llama_index/models
