@@ -1,5 +1,5 @@
 field,value
-mongodbURI,mongodb://localhost:27017
+mongodbURI,mongodb://host.docker.internal:27017
 mongo_db_name,ARH_chatbot
 inference_server_url,http://129.69.217.24:8009/v1
 qdranthost,129.69.217.24
