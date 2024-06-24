@@ -57,4 +57,4 @@ services:
     ports:
       - "8009:8009"
     volumes:
-      - ./tmp/llama_index/models:/tmp/llama_index/models
+      - /tmp/llama_index/models:/tmp/llama_index/models
