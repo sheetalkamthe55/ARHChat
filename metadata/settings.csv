@@ -1,7 +1,7 @@
 field,value
 mongodbURI,mongodb://129.69.217.24:27017
 mongo_db_name,ARH_chatbot
-inference_server_url,http://129.69.217.24:8000/v1
+inference_server_url,http://129.69.217.24:8009/v1
 qdranthost,129.69.217.24
 qdrantport,6333
 embeddingmodelname,sentence-transformers/all-mpnet-base-v2
