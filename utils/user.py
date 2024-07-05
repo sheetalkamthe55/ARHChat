@@ -20,9 +20,7 @@ def setup_metadata():
         if "mongodbURI" not in server_state:
             update_server_state(
                 "mongodbURI",
-                st.session_state["db_info"]
-                .loc[lambda x: x.field == "mongodbURI", "value"]
-                .values[0],
+                st.secrets["mongodbURI"]
             )
 
         if "mongo_db_name" not in server_state:
@@ -44,41 +42,31 @@ def setup_metadata():
         if "inference_server_url" not in server_state:
             update_server_state(
                 "inference_server_url",
-                st.session_state["db_info"]
-                .loc[lambda x: x.field == "inference_server_url", "value"]
-                .values[0],
+                st.secrets["inference_server_url"]
             )
 
         if "qdranthost" not in server_state:
             update_server_state(
                 "qdranthost",
-                st.session_state["db_info"]
-                .loc[lambda x: x.field == "qdranthost", "value"]
-                .values[0],
+                st.secrets["qdranthost"]
             )
 
         if "qdrantport" not in server_state:
             update_server_state(
                 "qdrantport",
-                st.session_state["db_info"]
-                .loc[lambda x: x.field == "qdrantport", "value"]
-                .values[0],
+                st.secrets["qdrantport"]
             )
         
         if "qdrant_server_url" not in server_state:
             update_server_state(
                 "qdrant_server_url",
-                st.session_state["db_info"]
-                .loc[lambda x: x.field == "qdrant_server_url", "value"]
-                .values[0],
+                st.secrets["qdrant_server_url"]
             )
 
         if "qdrant_API_key" not in server_state:
             update_server_state(
                 "qdrant_API_key",
-                st.session_state["db_info"]
-                .loc[lambda x: x.field == "qdrant_API_key", "value"]
-                .values[0],
+                st.secrets["qdrant_API_key"]
             )
 
         if "vector_collectionname" not in server_state:
