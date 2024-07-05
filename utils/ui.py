@@ -6,20 +6,30 @@ import time
 import uuid
 from utils.model import get_session_history
 import json
+# from streamlit_feedback import streamlit_feedback
+
+def _submit_feedback(user_response, emoji=None):
+    st.toast(f"Feedback submitted: {user_response}", icon=emoji)
+    update_server_state(
+                    f'{st.session_state["user_name"]} messages',
+                    server_state[f'{st.session_state["user_name"]} messages']
+                    + [{"role": "user", "content": user_response}],
+                )
+    st.write("Feedback submitted")
+    st.write(user_response)
+    return user_response.update({"feedback": "done"})
 
 def generate_session_id():
     "generate a session id"
-    st.session_state["session_id"] = str(uuid.uuid4())
-
+    update_server_state(f'{st.session_state["user_name"]}_session_id', str(uuid.uuid4()))
+    
 def ui_tab():
-    "tab title and icon"
     st.set_page_config(
         page_title=server_state["app_title"],
         page_icon="https://www.svgrepo.com/show/375527/ai-platform.svg",
     )
 
 def import_styles():
-    "import styles sheet and determine avatars of users"
     with open("styles/style.css") as css:
         st.markdown(f"<style>{css.read()}</style>", unsafe_allow_html=True)
 
@@ -41,8 +51,6 @@ def streamed_response(streamer):
             st.session_state["finalresponse"] += token
 
 def initial_placeholder():
-    "initial placeholder upon first login"
-
     if f'model_{st.session_state["db_name"]}' not in server_state:
         st.markdown(
             """<div class="icon_text"><img width=50 src='https://www.svgrepo.com/show/375527/ai-platform.svg'></div>""",
@@ -63,7 +71,6 @@ def ui_header():
             st.session_state["user_name"].lower().replace(" ", "_")
         )
 
-    # count which session of the user this is
     if f'{st.session_state["user_name"]}_count' not in server_state:
         update_server_state(f'{st.session_state["user_name"]}_count', 1)
         st.session_state["count"] = 1
@@ -131,19 +138,19 @@ def ui_display_chat_history():
     pipeline = [
     {
         '$match': {
-            'UserId': st.session_state["user_name"]  # Filter documents by UserId
+            'UserId': st.session_state["user_name"] 
         }
     },
     {
         '$group': {
-            '_id': '$SessionId',  # Group by SessionId
-            'user_id': {'$first': '$UserId'},  # Example: Get the first UserId in each group
-            'count': {'$sum': 1},  # Example: Count documents in each group
-            'History': {'$push': '$History'}  # Example: Push History field into an array
+            '_id': '$SessionId',  
+            'user_id': {'$first': '$UserId'}, 
+            'count': {'$sum': 1},  
+            'History': {'$push': '$History'} 
         }
     },
     {
-        '$sort': {'_id': 1}  # Optional: Sort by SessionId (ascending)
+        '$sort': {'_id': 1}  # Optional: Sort (ascending)
     }
     ]
     allmessages = get_session_history("","").getformatedmessage(pipeline)
@@ -160,30 +167,27 @@ def ui_display_chat_history():
                 st.experimental_rerun()
     
 def ui_export_chat_end_session():
-    "UI elements, export chat end session and help contact"
     if f'{st.session_state["user_name"]} messages' in server_state:
         st.session_state["export_chat_button"] = st.sidebar.download_button(
             label="Export chat history",
             data=export_chat_history(),
             file_name="chat_history.MD",
-            help="Export the current session's chat history to a formatted Markdown file. If you don't have a Markdown reader on your computer, post the contents to a [web app](http://editor.md.ipandao.com/en.html)",
+            help="Export the current session's chat history to a formatted Markdown file.",
         )
 
-    # end session button
     end_session = st.sidebar.button("End session", help="End your session.")
     if end_session:
         clear_models()
         update_server_state(
             f'{st.session_state["user_name"]} messages', []
-        )  # reset user's message history
+        )  
         st.session_state["password_correct"] = False
         st.session_state["user_name"] = ""
-        st.session_state["session_id"] = ""
+        update_server_state(f'{st.session_state["user_name"]}_session_id', "")
         st.rerun()
-        st.stop()
+        # st.stop()
 
 def populate_chat():
-    # Display chat messages from history on app rerun
     st.session_state["message_box"] = st.empty()
 
     if f'{st.session_state["user_name"]} messages' in server_state:
@@ -215,48 +219,21 @@ def populate_chat():
 def import_chat():
     "UI element and logic for chat interface"
     if f'model_{st.session_state["db_name"]}' in server_state:
-        # Initialize chat history
         if f'{st.session_state["user_name"]} messages' not in server_state:
             update_server_state(f'{st.session_state["user_name"]} messages', [])
 
-        # populate the chat, only if not reinitialized/reprocess, in that case done elsewhere
         if not (
             f'model_{st.session_state["db_name"]}' not in server_state
         ):
             populate_chat()
-        
-        # reset model's memory
-        # if st.session_state["reset_memory"]:
-        #     if (
-        #         server_state[f'model_{st.session_state["db_name"]}'].chat_engine
-        #         is not None
-        #     ):
-        #         with no_rerun:
-        #             server_state[
-        #                 f'model_{st.session_state["db_name"]}'
-        #             ].chat_engine = None
-        #     with st.chat_message(
-        #         "assistant", avatar=st.session_state["assistant_avatar"]
-        #     ):
-        #         st.markdown("Model memory reset!")
-        #     update_server_state(
-        #         f'{st.session_state["user_name"]} messages',
-        #         server_state[f'{st.session_state["user_name"]} messages']
-        #         + [{"role": "assistant", "content": "Model memory reset!"}],
-        #     )
-
-        # Accept user input
         placeholder_text = (
                 "Ask...'The monolith exposes APIs or interfaces. How do we break them down into microservices?'"
             )
         
-
         if prompt := st.chat_input(placeholder_text):
-            # Display user message in chat message container
             prompt_time = f"""<br> <sub><sup>{datetime.now().strftime("%Y-%m-%d %H:%M")}</sup></sub>"""
             with st.chat_message("user", avatar=st.session_state["user_avatar"]):
                 st.markdown(prompt + prompt_time, unsafe_allow_html=True)
-            # Add user message to chat history
             update_server_state(
                 f'{st.session_state["user_name"]} messages',
                 server_state[f'{st.session_state["user_name"]} messages']
@@ -298,7 +275,7 @@ def import_chat():
                             update_server_state("in_use", False)
                             update_server_state(
                                 "exec_queue", server_state["exec_queue"][1:]
-                            )  # take the first person out of the queue
+                            ) # take out of the queue
                             update_server_state("last_used", datetime.now())
 
                     t.markdown(
@@ -313,7 +290,7 @@ def import_chat():
 
             # generate response
             try:
-                if "session_id" not in st.session_state:
+                if f'{st.session_state["user_name"]}_session_id' not in server_state:
                     generate_session_id()
                 response = server_state[
                     f'model_{st.session_state["db_name"]}'
@@ -325,15 +302,13 @@ def import_chat():
                                 f"""<br> <sub><sup>{datetime.now().strftime("%Y-%m-%d %H:%M")}</sup></sub>"""
                             )
                         )
-                    ]}, {"configurable": {"session_id": st.session_state["session_id"], "user_id": st.session_state["user_name"]}})
+                    ]}, {"configurable": {"session_id": server_state[f'{st.session_state["user_name"]}_session_id'], "user_id": st.session_state["user_name"]}})
 
-                # Display model response against the assistant icon
                 with st.chat_message(
                     "assistant", avatar=st.session_state["assistant_avatar"]
                 ):
                     st.write_stream(streamed_response(response))
                 
-                # adding sources
                 with st.chat_message(
                     "sources_avatar", avatar=st.session_state["sources_avatar"]
                 ):
@@ -342,9 +317,7 @@ def import_chat():
                         source_string = ""
                         counter = 1
                         for source_path in st.session_state[f'{st.session_state["user_name"]} retriever_output']["context"]["sources"]:
-                            # Extracting the file name from the path
                             file_name = source_path.split('/')[-1]
-                            # Adding the file name to the source_string with the desired formatting
                             source_string += f"**Source {counter}**: {file_name}\n\n"
                             counter += 1
                         st.markdown(
@@ -354,13 +327,11 @@ def import_chat():
                         )
                         del st.session_state[f'{st.session_state["user_name"]} retriever_output']                    
 
-                # unlock the model
                 update_server_state("in_use", False)
                 update_server_state(
                     "exec_queue", server_state["exec_queue"][1:]
-                )  # take out of the queue
+                ) 
 
-                # Add assistant response to chat history
                 update_server_state(
                     f'{st.session_state["user_name"]} messages',
                     server_state[f'{st.session_state["user_name"]} messages']
@@ -377,10 +348,20 @@ def import_chat():
                     ],
                 )
                 st.session_state["finalresponse"] = ""
+                # if "feedback_key" not in st.session_state:
+                #     st.session_state.feedback_key = 0
+
+                # feedback_kwargs = {
+                #     "feedback_type": "thumbs",
+                #     "optional_text_label": "Please provide extra information",
+                #     "on_submit": _submit_feedback}
+                # user_messages_key = f'{st.session_state["user_name"]} messages'
+                # feedback_key = f"feedback_{int(len(server_state[user_messages_key])/2)}"
+                # feedbackresponse = streamlit_feedback(**feedback_kwargs, key=feedback_key)    
+                # st.write(feedbackresponse)  
             except Exception as e:
                 st.error(f"An error was encountered.: {e}")
-                # unlock the model
                 update_server_state("in_use", False)
                 update_server_state(
                     "exec_queue", server_state["exec_queue"][1:]
-                )  # take out of the queue
+                )

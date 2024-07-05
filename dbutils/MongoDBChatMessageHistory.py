@@ -9,6 +9,7 @@ from langchain_core.messages import (
     messages_from_dict,
 )
 from pymongo import MongoClient, errors
+import certifi
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class MongoDBChatMessageHistory(BaseChatMessageHistory):
         self.collection_name = collection_name
         
         try:
-            self.client: MongoClient = MongoClient(connection_string)
+            self.client: MongoClient = MongoClient(connection_string,tlsCAFile=certifi.where())
         except errors.ConnectionFailure as error:
             logger.error(error)
 

@@ -10,3 +10,4 @@ RUN rm -rf /var/lib/apt/lists/*
 # clone streamlit app
 RUN git clone https://github.com/sheetalkamthe55/ARHChat.git
 RUN curl -s https://raw.githubusercontent.com/sheetalkamthe55/ARHChat/main/requirements.txt?token=GHSAT0AAAAAACTVPEVXMSJSPWCKUYTKAIBCZTZUUDQ | xargs pip install
+

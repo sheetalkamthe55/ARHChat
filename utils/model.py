@@ -17,7 +17,8 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from qdrant_client import QdrantClient
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Qdrant
-
+# import os
+# os.environ['CURL_CA_BUNDLE'] = ''
 
 MONGODB_URI = server_state["mongodbURI"]
 DB_NAME = server_state["mongo_db_name"]
@@ -47,7 +48,7 @@ def instantiate_llm():
             k: v
             for k, v in [
                 ("model", "no-llm"),
-                ("openai_api_key", "no-key"),
+                ("openai_api_key", "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"),
                 ("openai_api_base", inference_server_url),
                 ("temperature", 0),
                 ("streaming", True)
@@ -62,7 +63,7 @@ def instantiate_llm():
 
 def initialize_retriever():
     try:
-        client = QdrantClient(host=server_state["qdranthost"], port=server_state["qdrantport"])
+        client = QdrantClient(url=server_state["qdrant_server_url"],api_key=server_state["qdrant_API_key"])
         embed_model= HuggingFaceEmbeddings(model_name=server_state["embeddingmodelname"])
         qdrant = Qdrant(client=client, collection_name=server_state["vector_collectionname"], embeddings=embed_model)
         retriever = qdrant.as_retriever()

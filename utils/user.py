@@ -64,6 +64,22 @@ def setup_metadata():
                 .loc[lambda x: x.field == "qdrantport", "value"]
                 .values[0],
             )
+        
+        if "qdrant_server_url" not in server_state:
+            update_server_state(
+                "qdrant_server_url",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "qdrant_server_url", "value"]
+                .values[0],
+            )
+
+        if "qdrant_API_key" not in server_state:
+            update_server_state(
+                "qdrant_API_key",
+                st.session_state["db_info"]
+                .loc[lambda x: x.field == "qdrant_API_key", "value"]
+                .values[0],
+            )
 
         if "vector_collectionname" not in server_state:
             update_server_state(
@@ -101,16 +117,12 @@ def clear_models():
         gc.collect()
 
 def determine_availability():
-    "determine if the application is available to the user"
-    # user list
     if "users_list" not in st.session_state:
         st.session_state["users_list"] = pd.read_csv("metadata/user_list.csv")
 
-    # if never been used, available
     if "in_use" not in server_state:
         update_server_state("in_use", False)
 
-    # only unable to log in if the model is currently generating and the user has not booted in already
     if "first_boot" not in st.session_state:
         st.session_state["first_boot"] = True
     else:
@@ -120,7 +132,7 @@ def determine_availability():
     else:
         st.session_state["available"] = True
 
-    # boot them if they're logging in again
+    # restart user if logging in again
     if "user_name" in st.session_state:
         if (
             f'{st.session_state["user_name"]}_count' in server_state
@@ -137,38 +149,31 @@ def determine_availability():
 
 
 def check_password():
-    """Check if a user entered the password correctly"""
-    # check if it hasn't been used in a while, potentially interrupted while executing
     if "last_used" not in server_state:
         update_server_state("last_used", datetime.now())
     if (datetime.now() - server_state["last_used"]).total_seconds() > 60:
         update_server_state("in_use", False)
 
     if not (st.session_state["available"]):
-        st.error("The LLM is currently generating, try again in a few seconds.")
+        st.error("The model is currently generating, try again in a few seconds.")
 
     def password_entered():
-        """Checks whether a password entered by the user is correct."""
         if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):
             st.session_state["password_correct"] = True
             del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
-    # Return True if the password is validated.
     if st.session_state.get("password_correct", False):
         if st.session_state["available"]:
             return True
 
-    # show input for user name
-    st.session_state["user_name"] = st.selectbox(
+    st.session_state["user_name"] = st.text_input(
         "User",
-        st.session_state["users_list"],
-        index=None,
-        placeholder="Select user...",
+        value="",
+        placeholder="Enter user name...",
     )
 
-    # Show input for password.
     st.text_input(
         "Password", type="password", on_change=password_entered, key="password"
     )

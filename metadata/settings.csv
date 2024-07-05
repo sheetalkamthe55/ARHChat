@@ -1,11 +1,13 @@
 field,value
-mongodbURI,mongodb://129.69.217.24:27017
+mongodbURI,mongodb+srv://sheetal:Sheetal%40123@ragcluster.uxamzan.mongodb.net/?retryWrites=true&w=majority&appName=RAGCluster
 mongo_db_name,ARH_chatbot
-inference_server_url,http://129.69.217.24:8009/v1
+inference_server_url,https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct
 qdranthost,129.69.217.24
 qdrantport,6333
-embeddingmodelname,sentence-transformers/all-mpnet-base-v2
+qdrant_server_url,https://cd253bb8-d8cf-4818-b78b-981e8b0f40f3.us-east4-0.gcp.cloud.qdrant.io:6333/
+embeddingmodelname,intfloat/e5-base-v2
 vector_collectionname,ARH_Tool
+qdrant_API_key,KvgaQh-g2wwl2tUkUyQL2RoRfccqRBSbFsJhosO2rnmO87pH8VfcNA
 history_collectionname,chat_history
 app_title,Architecture Refactoring AI Helper
 rag_system_prompt,"You are a chatbot specialized in answering questions in context concisely. If you cannot find the answer to a query in the provided context, say you cannot answer or provide related information that is in the context. Do not make up answers that are not contained in the context."
