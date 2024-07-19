@@ -166,3 +166,6 @@ __pycache__/
 
 .streamlit/
 secrets.toml
+
+TestNotebooks
+TestNotebooks/

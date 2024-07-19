@@ -48,7 +48,7 @@ def instantiate_llm():
             k: v
             for k, v in [
                 ("model", "no-llm"),
-                ("openai_api_key", "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"),
+                ("openai_api_key", "no-key"),
                 ("openai_api_base", inference_server_url),
                 ("temperature", 0),
                 ("streaming", True)
@@ -64,9 +64,10 @@ def instantiate_llm():
 def initialize_retriever():
     try:
         client = QdrantClient(url=server_state["qdrant_server_url"],api_key=server_state["qdrant_API_key"])
+        # https://python.langchain.com/v0.2/docs/integrations/text_embedding/huggingfacehub/
         embed_model= HuggingFaceEmbeddings(model_name=server_state["embeddingmodelname"])
         qdrant = Qdrant(client=client, collection_name=server_state["vector_collectionname"], embeddings=embed_model)
-        retriever = qdrant.as_retriever()
+        retriever = qdrant.as_retriever(search_type="mmr",search_kwargs={'k': 3, 'lambda_mult': 0.25})
         return retriever
     except Exception as e:
         st.write(
@@ -129,7 +130,7 @@ def initialize_rag_chain():
         with st.spinner("Initializing..."):
             def model_initialization():
                 initialize_llm()
-                rag_system_prompt = """Answer the question based only on the following context: \{context}"""
+                rag_system_prompt = """You are a chatbot specialized in answering questions in context concisely. If you cannot find the answer to a query in the provided context, say you cannot answer or provide related information that is in the context. Do not make up answers that are not contained in the context.: \{context}"""
                 rag_prompt = ChatPromptTemplate.from_messages(
                 [
                 ("system", rag_system_prompt),

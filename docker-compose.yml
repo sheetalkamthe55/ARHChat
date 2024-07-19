@@ -1,11 +1,5 @@
 services:
   mongo:
-    image: mongo
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-  mongo-express:
     image: mongodb/mongodb-community-server:latest
     restart: always
     ports:
@@ -22,18 +16,26 @@ services:
       - 6335
     volumes:
       - ./qdrant_data:/qdrant_data
+  llama_cpp_server:
+    image: llama-cpp-docker
+    environment:
+      - GGML_CUDA_NO_PINNED=1
+      - LLAMA_CTX_SIZE=2048
+      - LLAMA_MODEL=/models/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf
+      - LLAMA_N_GPU_LAYERS=99
+    volumes:
+      - ./models:/models
+    ports:
+      - target: 8009
+        published: 8009
+        mode: host
   streamlit:
     build:
-      dockerfile: Dockerfile-gpu
+      dockerfile: Dockerfile
     depends_on:
-      - mongo-express
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
-              count: 'all'
+      - mongo
+      - qdrant
+      - llama_cpp_server
     working_dir: /app/ARHChat
     ports:
       - 8503:8503
@@ -42,19 +44,3 @@ services:
       - ~/Project/ARHChat/.streamlit/secrets.toml:/app/ARHChat/.streamlit/secrets.toml
     command: ["streamlit", "run", "app.py", "--server.port=8503", "--server.address=0.0.0.0"]
   
-  # llama_cpp_server:
-  #   image: ghcr.io/allenporter/llama-cpp-server-cuda
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             capabilities: [gpu]
-  #             count: 'all'
-  #   environment:
-  #     CUDA_VISIBLE_DEVICES: 1
-  #   command: ["--model", "/tmp/llama_index/models/Meta-Llama-3-8B-Instruct.Q5_K_M.gguf", "--port=8009", "--host=129.69.217.24", "--n_ctx", "8000", "--chat_format", "chatml"]
-  #   ports:
-  #     - "8009:8009"
-  #   volumes:
-  #     - /tmp/llama_index/models:/tmp/llama_index/models

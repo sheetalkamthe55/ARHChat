@@ -1,6 +1,6 @@
-# message_history_handler.py
 import gc
 import sys
+sys.path.append('/home/sheetal/Project/ARHChat/')
 from dbutils.MongoDBChatMessageHistory import MongoDBChatMessageHistory
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -15,20 +15,23 @@ from qdrant_client import QdrantClient
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Qdrant
 
-MONGODB_URI = "mongodb://localhost:27017"
-DB_NAME =  "ARH_chatbot"
 parse_output = StrOutputParser()
 retriever_output = None
 model = None
 
 class MessageHistoryHandler:
-    def __init__(self):
-        
-        pass
+    def __init__(self, mongodb_uri, db_name, vector_db_url, vector_db_apikey, vector_db_collection_name, inference_server_url, embedding_model_name):
+        self.mongodb_uri = mongodb_uri
+        self.db_name = db_name
+        self.vector_db_url = vector_db_url
+        self.vector_db_apikey = vector_db_apikey
+        self.vector_db_collection_name = vector_db_collection_name
+        self.inference_server_url = inference_server_url
+        self.embedding_model_name = embedding_model_name
     
-    def instantiate_llm():
+    def instantiate_llm(self):
         try:
-            inference_server_url = "http://129.69.217.24:8009/v1"
+            inference_server_url = self.inference_server_url
             kwargs = {
                 k: v
                 for k, v in [
@@ -37,6 +40,7 @@ class MessageHistoryHandler:
                     ("openai_api_base", inference_server_url),
                     ("temperature", 0),
                     ("streaming", True)
+                    # ("max_tokens", 100)
                 ]
                 if v is not None
             }
@@ -46,25 +50,25 @@ class MessageHistoryHandler:
             print(
                 f"failed to instantiate the LLM model, please check the inference server URL and the model path: {e}")
 
-    def initialize_retriever():
+    def initialize_retriever(self):
         try:
-            client = QdrantClient(host="129.69.217.24", port=6333)
-            embed_model= HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
-            qdrant = Qdrant(client=client, collection_name="ARH_Tool", embeddings=embed_model)
+            client = QdrantClient(url=self.vector_db_url, api_key=self.vector_db_apikey)
+            embed_model= HuggingFaceEmbeddings(model_name=self.embedding_model_name)
+            qdrant = Qdrant(client=client, collection_name=self.vector_db_collection_name, embeddings=embed_model)
             retriever = qdrant.as_retriever()
             return retriever
         except Exception as e:
             print(
                 f"failed to instantiate the retriever, please check the Qdrant server URL and the model path: {e}")
 
-    def get_session_history(session_id: str,user_id: str) -> MongoDBChatMessageHistory:
+    def get_session_history(self, session_id: str,user_id: str) -> MongoDBChatMessageHistory:
             try:
-                return MongoDBChatMessageHistory(MONGODB_URI, session_id,
-                                                  user_id, database_name=DB_NAME, collection_name="chat_history")
+                return MongoDBChatMessageHistory(self.mongodb_uri, session_id,
+                                                  user_id, database_name=self.db_name, collection_name="chat_history")
             except Exception as e:
                 print(f"failed to get the session history, please check the MongoDB server URL and the model path: {e}")
     
-    def intialize_question_chain():
+    def intialize_question_chain(self):
         try:
             global model
             standalone_system_prompt = """
@@ -79,7 +83,7 @@ class MessageHistoryHandler:
                     ("human", "{question}"),
                 ]
             )
-            model = MessageHistoryHandler.instantiate_llm()
+            model = self.instantiate_llm()
             question_chain = standalone_question_prompt | model  | parse_output
             return question_chain
         except Exception as e:
@@ -87,9 +91,9 @@ class MessageHistoryHandler:
                 f"failed to initialize the question chain, please check the LLM model and the model path: {e}"
             )
     
-    def initialize_retriever_chain():
+    def initialize_retriever_chain(self):
         try:
-            retriever_chain = RunnablePassthrough.assign(context=MessageHistoryHandler.intialize_question_chain() | MessageHistoryHandler.initialize_retriever() | (lambda docs: {
+            retriever_chain = RunnablePassthrough.assign(context=self.intialize_question_chain() | self.initialize_retriever() | (lambda docs: {
                 'content': "\n\n".join([d.page_content for d in docs]),
                 'sources': [d.metadata['source'] for d in docs]
             }))
@@ -109,9 +113,9 @@ class MessageHistoryHandler:
                 ("human", "{question}"),
                 ])
                 
-                rag_chain = (MessageHistoryHandler.initialize_retriever_chain() | rag_prompt | model | parse_output)
+                rag_chain = (self.initialize_retriever_chain() | rag_prompt | model | parse_output)
                 with_message_history = RunnableWithMessageHistory(rag_chain,
-                                                                  MessageHistoryHandler.get_session_history,
+                                                                  self.get_session_history,
                                                                   input_messages_key="question",
                                                                   history_messages_key="chat_history",
                                                                   history_factory_config=[

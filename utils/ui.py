@@ -150,7 +150,10 @@ def ui_display_chat_history():
         }
     },
     {
-        '$sort': {'_id': 1}  # Optional: Sort (ascending)
+        '$sort': {'timestamp': -1}  # Optional: Sort (descending) by timestamp
+    },
+    {
+        '$limit': 6  # Limit the results to the last 5 entries
     }
     ]
     allmessages = get_session_history("","").getformatedmessage(pipeline)

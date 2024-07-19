@@ -10,6 +10,7 @@ from langchain_core.messages import (
 )
 from pymongo import MongoClient, errors
 import certifi
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,8 @@ class MongoDBChatMessageHistory(BaseChatMessageHistory):
         self.collection = self.db[collection_name]
         self.collection.create_index("SessionId")
         self.collection.create_index("UserId")
+        self.collection.create_index([("timestamp", 1)])  # Ascending index for timestamp
+
     
     def clear(self) -> None:
         """Clear session memory from MongoDB"""
@@ -86,6 +89,8 @@ class MongoDBChatMessageHistory(BaseChatMessageHistory):
                     "SessionId": self.session_id,
                     "UserId": self.user_id,
                     "History": json.dumps(message_to_dict(message)),
+                    "timestamp": datetime.utcnow(),  # Add current UTC timestamp
+                
                 }
             )
         except errors.WriteError as err:
