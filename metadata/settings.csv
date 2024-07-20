@@ -4,5 +4,3 @@ vector_collectionname,ARH_Tool
 mongo_db_name,ARH_chatbot
 history_collectionname,chat_history
 app_title,Architecture Refactoring AI Helper
-rag_system_prompt,"You are a chatbot specialized in answering questions in context concisely. If you cannot find the answer to a query in the provided context, say you cannot answer or provide related information that is in the context. Do not make up answers that are not contained in the context."
-context_prompt,Here is the context:  {context_str}

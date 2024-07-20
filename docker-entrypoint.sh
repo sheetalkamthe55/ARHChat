@@ -19,7 +19,9 @@ if [ "$#" -eq 1 ]; then
     fi
     MODEL_NAME=$(basename "$MODEL_URL")
     curl -LO "$MODEL_URL"
-    echo "$MODEL_SHA256  $MODEL_NAME" | sha256sum -c -
+    # echo "$MODEL_SHA256  $MODEL_NAME" | sha256sum -c -
+    # echo "$MODEL_SHA256 $MODEL_NAME" | shasum -a 256 -c -
+    printf "%s  %s" "$MODEL_SHA256" "$MODEL_NAME" | shasum -a 256 -c -
     exit 0
 fi
 

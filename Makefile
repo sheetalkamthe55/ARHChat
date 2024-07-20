@@ -3,12 +3,12 @@ DOCKER := $(if $(USE_SUDO), sudo docker, docker)
 DIRNAME := $(notdir $(CURDIR))
 HAS_NVIDIA_GPU := $(shell which nvidia-smi >/dev/null && nvidia-smi --query --display=COMPUTE && echo ok)
 
-build:
-ifdef HAS_NVIDIA_GPU
-	$(DOCKER) build . --tag $(DIRNAME)
-else
-	$(DOCKER) build . --file Dockerfile-cpu --tag $(DIRNAME)
-endif
+# build:
+# ifdef HAS_NVIDIA_GPU
+# 	$(DOCKER) build . --file Dockerfile-gpu --tag $(DIRNAME)
+# else
+# 	$(DOCKER) build . --file Dockerfile-cpu --tag $(DIRNAME)
+# endif
 
 llama-2-13b:
 	cd models && ../docker-entrypoint.sh $@
@@ -21,7 +21,7 @@ llama-3-8b:
 
 up:
 ifdef HAS_NVIDIA_GPU
-	$(DOCKER) compose -f docker-compose.yml -f docker-compose.gpu.yml up
+	$(DOCKER) compose -f docker-compose.gpu.yml up
 else
 	$(DOCKER) compose -f docker-compose.yml up
 endif

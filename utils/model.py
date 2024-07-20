@@ -2,7 +2,6 @@ import streamlit as st
 from streamlit_server_state import server_state, no_rerun
 import gc
 from utils.user import update_server_state, clear_models
-# from utils.ui import populate_chat
 import sys
 from dbutils.MongoDBChatMessageHistory import MongoDBChatMessageHistory
 from langchain_openai import ChatOpenAI
@@ -17,8 +16,6 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from qdrant_client import QdrantClient
 from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Qdrant
-# import os
-# os.environ['CURL_CA_BUNDLE'] = ''
 
 MONGODB_URI = server_state["mongodbURI"]
 DB_NAME = server_state["mongo_db_name"]
@@ -105,7 +102,7 @@ def initialize_retriever_chain():
     try:
         retriever_chain = RunnablePassthrough.assign(context=intialize_question_chain() | initialize_retriever() | (lambda docs: {
             'content': "\n\n".join([d.page_content for d in docs]),
-            'sources': [d.metadata['source'] for d in docs]
+            'sources': [str(d.metadata.get('page', '')) + ' ' + str(d.metadata.get('source', '')) for d in docs]
         }))
         return retriever_chain
     except Exception as e:
@@ -118,19 +115,16 @@ def initialize_rag_chain():
         f'model_{st.session_state["db_name"]}' not in server_state
     ):
         clear_models()
-    # hid messages so you can see the initializer
+
         if "message_box" in st.session_state:
             st.session_state["message_box"].empty()
     
-    # intialize progress bar in case necessary
         old_stdout = sys.stdout
-        # sys.stdout = Logger(st.progress(0), st.empty())
 
-    
         with st.spinner("Initializing..."):
             def model_initialization():
                 initialize_llm()
-                rag_system_prompt = """You are a chatbot specialized in answering questions in context concisely. If you cannot find the answer to a query in the provided context, say you cannot answer or provide related information that is in the context. Do not make up answers that are not contained in the context.: \{context}"""
+                rag_system_prompt = """You are a chatbot specialized in answering questions in context concisely. If you cannot find the answer to a query in the provided context, say you cannot answer or provide related information that is in the context. Do not make up answers that are not contained in the context.: \Context: {context}"""
                 rag_prompt = ChatPromptTemplate.from_messages(
                 [
                 ("system", rag_system_prompt),
@@ -160,22 +154,18 @@ def initialize_rag_chain():
                                                                         default="",
                                                                         is_shared=True,
                                                                     )])
-                # response = with_message_history.stream({"question": "Define microservices"}, {"configurable": {"session_id": st.session_state["user_name"]}})
                 update_server_state(f'model_{st.session_state["db_name"]}', with_message_history)
                 del with_message_history
                 gc.collect()
     
         model_initialization()
 
-        
-        # clear the progress bar
         try:
             sys.stdout = sys.stdout.clear()
             sys.stdout = old_stdout
         except:
             pass
 
-        # populate_chat()
         st.info("Model successfully initialized!")
 
     

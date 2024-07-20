@@ -167,7 +167,7 @@ def ui_display_chat_history():
                 st.write(message['data']['content'])
             if st.button(f"Delete Chat {chat_index}", key=f"delete_{chat_index}"):
                 delete_chat_history(chat["_id"], chat["user_id"])
-                st.experimental_rerun()
+                st.rerun()
     
 def ui_export_chat_end_session():
     if f'{st.session_state["user_name"]} messages' in server_state:
@@ -306,29 +306,36 @@ def import_chat():
                             )
                         )
                     ]}, {"configurable": {"session_id": server_state[f'{st.session_state["user_name"]}_session_id'], "user_id": st.session_state["user_name"]}})
-
-                with st.chat_message(
+                chat_placeholder = st.empty()
+                source_placeholder = st.empty()
+                source_placeholder.empty()
+                chat_placeholder.empty()
+                with chat_placeholder.chat_message(
                     "assistant", avatar=st.session_state["assistant_avatar"]
                 ):
-                    st.write_stream(streamed_response(response))
+                    with st.empty():
+                        st.write_stream(streamed_response(response))
                 
-                with st.chat_message(
+                with source_placeholder.chat_message(
                     "sources_avatar", avatar=st.session_state["sources_avatar"]
                 ):
-                    if f'{st.session_state["user_name"]} retriever_output' in st.session_state and "context" in st.session_state[f'{st.session_state["user_name"]} retriever_output'] and "sources" in st.session_state[f'{st.session_state["user_name"]} retriever_output']["context"]:
-                        response_time = f"""<br> <sub><sup>{datetime.now().strftime("%Y-%m-%d %H:%M")}</sup></sub>"""
-                        source_string = ""
-                        counter = 1
-                        for source_path in st.session_state[f'{st.session_state["user_name"]} retriever_output']["context"]["sources"]:
-                            file_name = source_path.split('/')[-1]
-                            source_string += f"**Source {counter}**: {file_name}\n\n"
-                            counter += 1
-                        st.markdown(
-                            "Sources: " + response_time,
-                            unsafe_allow_html=True,
-                            help=f"{source_string}",
-                        )
-                        del st.session_state[f'{st.session_state["user_name"]} retriever_output']                    
+                        if f'{st.session_state["user_name"]} retriever_output' in st.session_state and "context" in st.session_state[f'{st.session_state["user_name"]} retriever_output'] and "sources" in st.session_state[f'{st.session_state["user_name"]} retriever_output']["context"]:
+                            response_time = f"""<br> <sub><sup>{datetime.now().strftime("%Y-%m-%d %H:%M")}</sup></sub>"""
+                            source_string = ""
+                            counter = 1
+                            for source_path in st.session_state[f'{st.session_state["user_name"]} retriever_output']["context"]["sources"]:
+                                parts = source_path.split(' ', 1)
+                                page_info = parts[0]
+                                path = parts[1]
+                                file_name = path.split('/')[-1]
+                                source_string += f"**Source {counter}**: Page {page_info} {file_name}\n\n"
+                                counter += 1
+                            st.markdown(
+                                "Sources: " + response_time,
+                                unsafe_allow_html=True,
+                                help=f"{source_string}",
+                            )
+                            del st.session_state[f'{st.session_state["user_name"]} retriever_output']                    
 
                 update_server_state("in_use", False)
                 update_server_state(

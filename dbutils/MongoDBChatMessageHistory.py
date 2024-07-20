@@ -45,7 +45,8 @@ class MongoDBChatMessageHistory(BaseChatMessageHistory):
         self.collection_name = collection_name
         
         try:
-            self.client: MongoClient = MongoClient(connection_string,tlsCAFile=certifi.where())
+            self.client: MongoClient = MongoClient(connection_string)
+                                                #    ,tlsCAFile=certifi.where()
         except errors.ConnectionFailure as error:
             logger.error(error)
 

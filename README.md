@@ -9,10 +9,13 @@ The Large Language Model (LLM) used in the application has a limited context len
 
 ## Deployment
 
-### Prerequisites (For development)
+### Prerequisites 
+(For development if not using docker)
 - The app is tested with Python 3.9.6
 - Install [pip](https://pip.pypa.io/en/stable/installation/)
 - [MongoDB](https://www.mongodb.com/docs/manual/installation/) and [Qdrant](https://qdrant.tech/documentation/guides/installation/) to be installed on system 
+
+(Install docker to deploy using docker)
 
 ### How to Setup
 

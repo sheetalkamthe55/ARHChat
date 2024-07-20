@@ -17,30 +17,30 @@ services:
     volumes:
       - ./qdrant_data:/qdrant_data
   llama_cpp_server:
-    image: llama-cpp-docker
-    environment:
-      - GGML_CUDA_NO_PINNED=1
-      - LLAMA_CTX_SIZE=2048
-      - LLAMA_MODEL=/models/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf
-      - LLAMA_N_GPU_LAYERS=99
-    volumes:
-      - ./models:/models
+    build: 
+      dockerfile: Dockerfile-cpu
+    command: python3 -m llama_cpp.server --model /models/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf --port 8009 --host 0.0.0.0 --n_ctx 8000 --chat_format chatml
     ports:
       - target: 8009
         published: 8009
         mode: host
+    volumes:
+      - ./models:/models
   streamlit:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile-streamlit
     depends_on:
       - mongo
       - qdrant
       - llama_cpp_server
-    working_dir: /app/ARHChat
+    working_dir: /app/arah
     ports:
       - 8503:8503
+    # volumes:
+    #   - ~/Project/arah/metadata:/app/arah/metadata
+    #   - ~/Project/arah/.streamlit/secrets.toml:/app/arah/.streamlit/secrets.toml
     volumes:
-      - ~/Project/ARHChat/metadata:/app/ARHChat/metadata
-      - ~/Project/ARHChat/.streamlit/secrets.toml:/app/ARHChat/.streamlit/secrets.toml
+      - /Users/sheetalkamthe/Documents/Thesis/Project/arah/metadata:/app/arah/metadata
+      - /Users/sheetalkamthe/Documents/Thesis/Project/arah/.streamlit/secrets.toml:/app/arah/.streamlit/secrets.toml
     command: ["streamlit", "run", "app.py", "--server.port=8503", "--server.address=0.0.0.0"]
   

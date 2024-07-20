@@ -44,18 +44,6 @@ def setup_metadata():
                 "inference_server_url",
                 st.secrets["inference_server_url"]
             )
-
-        if "qdranthost" not in server_state:
-            update_server_state(
-                "qdranthost",
-                st.secrets["qdranthost"]
-            )
-
-        if "qdrantport" not in server_state:
-            update_server_state(
-                "qdrantport",
-                st.secrets["qdrantport"]
-            )
         
         if "qdrant_server_url" not in server_state:
             update_server_state(
