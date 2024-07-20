@@ -50,4 +50,9 @@ The Large Language Model (LLM) used in the application has a limited context len
     nohup streamlit run app.py &
     ```
 
+### With Docker
+
+clone the directory
+create a models folder 
+make llama-3-8b
 
