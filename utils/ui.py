@@ -151,10 +151,10 @@ def ui_display_chat_history():
     },
     {
         '$sort': {'timestamp': -1}  # Optional: Sort (descending) by timestamp
-    },
-    {
-        '$limit': 6  # Limit the results to the last 5 entries
     }
+    # {
+    #     '$limit': 6  # Limit the results to the last 6 entries
+    # }
     ]
     allmessages = get_session_history("","").getformatedmessage(pipeline)
 
@@ -163,7 +163,6 @@ def ui_display_chat_history():
         with st.sidebar.expander(chat_label):
             parsed_messages = [json.loads(message) for message in chat["History"]]
             for message_index, message in enumerate(parsed_messages, start=1):
-                # message_label = f"{message['type'].capitalize()} {message_index}: {message['data']['content'][:50]}..."
                 st.write(message['data']['content'])
             if st.button(f"Delete Chat {chat_index}", key=f"delete_{chat_index}"):
                 delete_chat_history(chat["_id"], chat["user_id"])
@@ -187,6 +186,7 @@ def ui_export_chat_end_session():
         st.session_state["password_correct"] = False
         st.session_state["user_name"] = ""
         update_server_state(f'{st.session_state["user_name"]}_session_id', "")
+        st.session_state["alreadyinitiated"] = False
         st.rerun()
         # st.stop()
 

@@ -76,9 +76,9 @@ if __name__ == "__main__":
     clear_database(args.url,args.collection_name,api_key=args.api_key)
     print("✨ Database Cleared")
     if not args.pdf_folder_path:
-        # if not defined then take absolute path of the current directory + Content folder 
         args.pdf_folder_path = os.path.join(os.getcwd(), "Content")
-    # check if content in the directory is present or not, if not then exit
+        print("❌ No PDF folder path provided. Setting default absolute path to Content folder.", args.pdf_folder_path)
+
     if not os.path.exists(args.pdf_folder_path):
         print("❌ Content folder not found.")
         exit(1)
@@ -89,4 +89,4 @@ if __name__ == "__main__":
     main(args.url,args.pdf_folder_path,args.model_name,args.collection_name,args.chunksize,args.chunkoverlap,args.api_key)
 
 
-# python3 embeddocs.py "http://localhost:6333" --reset "/Users/sheetalkamthe/Documents/Thesis/Documents/MicroservicesRefactoringApproaches" "intfloat/e5-base-v2" "ARH_Tool"
+# python3 embeddocs.py "http://localhost:6333/" --collection_name "ARH_Tool" --chunksize 512 --chunkoverlap 100 --pdf_folder_path "/yourpath/to/folder"

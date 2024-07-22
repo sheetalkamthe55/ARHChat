@@ -169,3 +169,8 @@ secrets.toml
 
 TestNotebooks
 TestNotebooks/
+
+bin/
+lib/
+
+pyvenv.cfg
