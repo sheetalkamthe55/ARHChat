@@ -33,9 +33,9 @@ services:
         mode: host
     volumes:
       - ./models:/models
-  streamlit:
+  arahui:
     build:
-      dockerfile: Dockerfile-streamlit
+      dockerfile: Dockerfile-arah
     depends_on:
       - mongo
       - qdrant
@@ -47,10 +47,30 @@ services:
             - driver: nvidia
               capabilities: [gpu]
               count: 'all'
-    working_dir: /app/arah
+    working_dir: /app/arah/api/ui
     ports:
       - 8503:8503
     volumes:
-      - ~/Project/ARHChat/arah/metadata:/app/arah/metadata
-      - ~/Project/ARHChat/arah/.streamlit/secrets.toml:/app/arah/.streamlit/secrets.toml
+      - /Users/sheetalkamthe/Documents/Thesis/Project/arah/api/ui/metadata:/app/arah/api/ui/metadata
+      - /Users/sheetalkamthe/Documents/Thesis/Project/arah/api/ui/.streamlit/secrets.toml:/app/arah/api/ui/.streamlit/secrets.toml
     command: ["streamlit", "run", "app.py", "--server.port=8503", "--server.address=0.0.0.0"]
+  arahapi:
+    build:
+      dockerfile: Dockerfile-arah
+    depends_on:
+      - mongo
+      - qdrant
+      - llama_cpp_server
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: 'all'
+    working_dir: /app/arah/api
+    ports:
+      - 8505:8505
+    volumes:
+      - /Users/sheetalkamthe/Documents/Thesis/Project/arah/settings.yaml:/app/arah/settings.yaml
+    command: ["uvicorn", "main:app", "--port 8505"]

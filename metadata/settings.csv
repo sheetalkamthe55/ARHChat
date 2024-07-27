@@ -1,6 +1,0 @@
-field,value
-embeddingmodelname,intfloat/e5-base-v2
-vector_collectionname,ARH_Tool
-mongo_db_name,ARH_chatbot
-history_collectionname,chat_history
-app_title,Architecture Refactoring AI Helper

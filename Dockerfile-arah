@@ -8,3 +8,5 @@ RUN rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/sheetalkamthe55/arah.git
 RUN curl -s https://raw.githubusercontent.com/sheetalkamthe55/arah/main/requirements.txt | xargs pip install
+
+ENV PYTHONPATH="$PYTHONPATH:/app/arah/"

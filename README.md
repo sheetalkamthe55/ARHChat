@@ -166,4 +166,48 @@ And then it is enabled by setting environment variables:
 ```
 
 
+### ARAH Chat API
+
+API which supports streaming and non streaming response
+*Input schema:*
+{
+  "message": "string",
+  "stream": false,
+  "session_id": "string",
+  "user_id": "string"
+}
+
+Media-type for streaming - `text/event-stream`
+Media-type for non streaming - `application/json`
+
+ ```sh
+  cd api
+ ```
+ ```sh
+  uvicorn main:app --port 8505
+ ```
+
+ The swagger document can be accessed on `http://127.0.0.1:8505/docs`
+
+ ![alt text](image.png)
+
+
+ ## Embed the app directly into a an existing webpage
+
+   ```html
+      <!DOCTYPE html>
+      <html>
+      <body>
+      
+      <iframe src="<streamlit app address>" width="600" height="600">
+        <p>Your browser does not support iframes.</p>
+      </iframe>
+
+      </body>
+      </html>
+  ```
+
+  To remove the chrome margins, can add a parameter `?embed=true`.
+
+
 

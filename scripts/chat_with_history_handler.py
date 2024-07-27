@@ -1,6 +1,6 @@
 import gc
 import sys
-sys.path.append('/home/sheetal/Project/ARHChat/')
+sys.path.append('~/Project/ARHChat/')
 from dbutils.MongoDBChatMessageHistory import MongoDBChatMessageHistory
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -71,20 +71,20 @@ class MessageHistoryHandler:
     def intialize_question_chain(self):
         try:
             global model
-            standalone_system_prompt = """
+            question_system_prompt = """
             Given a chat history and a follow-up question, rephrase the follow-up question to be a standalone question. \
             Do NOT answer the question, just reformulate it if needed, otherwise return it as is. \
             Only return the final standalone question. \
             """
-            standalone_question_prompt = ChatPromptTemplate.from_messages(
+            rephrase_question_prompt = ChatPromptTemplate.from_messages(
                 [
-                    ("system", standalone_system_prompt),
+                    ("system", question_system_prompt),
                     MessagesPlaceholder(variable_name="chat_history"),
                     ("human", "{question}"),
                 ]
             )
             model = self.instantiate_llm()
-            question_chain = standalone_question_prompt | model  | parse_output
+            question_chain = rephrase_question_prompt | model  | parse_output
             return question_chain
         except Exception as e:
             print(
