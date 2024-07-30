@@ -131,7 +131,7 @@ class RagChatService:
                 }
             },
             {
-                '$sort': {'timestamp': -1}  # Optional: Sort (descending) by timestamp
+                '$sort': {'timestamp': -1}  # Sort (descending) by timestamp
             }
             ]
         history = self.mongodb.get_session_history("","").getformatedmessage(pipeline)

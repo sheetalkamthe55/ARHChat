@@ -1,5 +1,5 @@
 # Architecture Refactoring AI Helper (ARAH)
-Our tool aims to provide assistance to users in migrating from monolith architectures to microservices by querying a Large Language Model (LLM) which recommends relevant academic approaches for this transition. Briefly, before an LLM responds to your query, the tool first fetches relevant context to the query from the database of academic research papers (using semantic similarity) and responds to your query with this additonal context. This limits the LLM to an extent to not hallucinate and receive valid recommendations using language. This approach is called Retrieval Augmented Generation (RAG). 
+Our tool aims to provide assistance to users in migrating from monolith architectures to microservices by querying a Large Language Model (LLM) which recommends relevant academic approaches for this transition. Briefly, before an LLM responds to your query, the tool first fetches relevant context to the query from the database of academic research papers (using semantic similarity) and responds to your query with this additonal context. This limits the LLM to an extent to not hallucinate and receive valid recommendations using natural language. This approach is called Retrieval Augmented Generation (RAG). 
 
 ## User Interface Information: 
 Upon logging in, a chat window will appear. You can use this window to ask questions related to Microservices Architecture and the process of refactoring a monolith to a microservice architecture.
@@ -35,11 +35,12 @@ The Large Language Model (LLM) used in the application has a limited context len
   This embeds pdfs in the given path using `intfloat/e5-base-v2` embedding model into the Qdrant database.
 
 - In order to use a model hosted locally(On GPU) (no performance on CPU), we will use llama cpp.
+  Also refer to this [feature matrix](https://github.com/ggerganov/llama.cpp/wiki/Feature-matrix) to understand the performance of diff quantized models vs accelerators
   ```sh
   CMAKE_ARGS="-DLLAMA_CUBLAS=on" 
   pip3 install 'llama-cpp-python[server]==0.2.76'
   ```
-- Download the LLM (in .gguf format) in the e.g. `models/` directory 
+- Download the LLM (in .gguf format) in e.g. `models/` directory 
 
     **To download manualy**
 
@@ -65,16 +66,43 @@ The Large Language Model (LLM) used in the application has a limited context len
       ```sh
         make llama-3-8b
       ```
+- Files to update
+   **Create Secrets file Configuration Directory**
+  Create a `.streamlit` directory which will contain the password for all users in ``api\ui\metadata\user_list.scv` in a `secrets.toml` file.
+   ```sh
+   mkdir .streamlit
+   touch secrets.toml
+   nano secrets.toml
+   ```
+   The `secrets.toml` file will include the following parameter :
+   ```sh
+    password = "password"
+   ```
+
+   **Update the seetings.yaml file**
+   Following fields to be updated if llamacpp, mongo, qdrant is hosted other than the localhost 
+
+   mongodb:
+      url: "mongodb://localhost:27017"
+   qdrant:
+      url: "http://localhost:6333"
+   llm:
+      inference_server_url: "http://localhost:8009/v1"
 
 
 - Running the Application
+    
     ```sh
+     cd api/ui
      streamlit run app.py
      ```
    Can use `nohup` to run streamlit as a background process
     ```sh
+    cd api/ui
     nohup streamlit run app.py &
     ```
+
+- If you want to host only the API , can follow the steps in the *ARAH Chat API* section
 
 ### With Docker
 ## Prerequisites
@@ -100,21 +128,28 @@ Before you begin, ensure you have the following installed:
 
 3. **Create Streamlit Configuration Directory**
 
-   Create a `.streamlit` directory which will contain app-specific configurations in a `secrets.toml` file.
+   Create a `.streamlit` directory which will contain the password for all users in ``api\ui\metadata\user_list.scv` in a `secrets.toml` file.
    ```sh
    mkdir .streamlit
    touch secrets.toml
    nano secrets.toml
    ```
-   The `secrets.toml` file will include the following parameters (docker uses the service names of each container to communicate whereas each of the services are accessible from outside the container using localhost):
+   The `secrets.toml` file will include the following parameters :
    ```sh
    password = "password"
-   qdrant_API_key = "None"
-   mongodbURI = "mongodb://mongo:27017"
-   inference_server_url = "http://llama_cpp_server:8009/v1"
-   qdrant_server_url = "http://qdrant:6333/"
    ```
 
+4. **Update the seetings.yaml file**
+   
+   (docker uses the service names of each container to communicate whereas each of the services are accessible from outside the container using localhost)
+   
+   mongodb:
+      url: "mongodb://mongo:27017"
+   qdrant:
+      url: "http://llama_cpp_server:6333"
+   llm:
+      inference_server_url: "http://qdrant:8009/v1"
+  
 
 4. **Download LLaMA-3-8b**
 
@@ -126,21 +161,19 @@ Before you begin, ensure you have the following installed:
 
 5. **Compose docker**
 
+   Also following points to be checked in `docker-compose.gpu.yml` or `docker-compose.yml`
+   
+   For `llama_cpp_server` service, this hosts the LLama 3 model on mentioned port , therefore adjust the port if needed or `8009` is the default port.
+
+   For `arahui` service, correct volumes are to be mapped
+
+   Can remove `arahapi` service from docker compose if we do not need the API for integration.
+
    To build the images and start the container use the following command:
    ```sh
    make up
    ```
    This will check if NVIDIA GPU exists and accordingly use the docker compose files
-   Also need to change the variables in `docker-compose.gpu.yml` or `docker-compose.yml`
-   
-   For `llama_cpp_server` service, this hosts the LLama 3 model on mentioned port , therefore adjust the port if needed or `8009` is the default port.
-
-   For `streamlit` service, correct volumes are to be mapped
-   ```sh
-      volumes:
-      - ~/Project/ARHChat/arah/metadata:/app/arah/metadata
-      - ~/Project/ARHChat/arah/.streamlit/secrets.toml:/app/arah/.streamlit/secrets.toml
-   ```
 
 6. **Insert documents in Vector Database**
 
@@ -152,19 +185,7 @@ Before you begin, ensure you have the following installed:
    ```sh
     python3 embeddocs.py "http://localhost:6333/" --collection_name "ARH_Tool" --chunksize 512 --chunkoverlap 100 --pdf_folder_path "/youpath/to/pdfdirectory" 
 
-
-
-PS: 
-I used Langsmith developer platform to monitor and evaluate the application. It helps significantly track response time of each service call. It can be enabled by creating an API key by logging into langsmith and setting up a project here. 
-And then it is enabled by setting environment variables:
-
-```sh
-  export LANGCHAIN_TRACING_V2=true
-  export LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
-  export LANGCHAIN_API_KEY=your-key
-  export LANGCHAIN_PROJECT=callback-experiments (or any chosen name)
-```
-
+**The app will be available on "http://localhost:8503/"**
 
 ### ARAH Chat API
 
@@ -189,7 +210,7 @@ Media-type for non streaming - `application/json`
 
  The swagger document can be accessed on `http://127.0.0.1:8505/docs`
 
- ![alt text](image.png)
+ ![alt text](/images/SwaggerAPI.png)
 
 
  ## Embed the app directly into a an existing webpage
@@ -208,6 +229,19 @@ Media-type for non streaming - `application/json`
   ```
 
   To remove the chrome margins, can add a parameter `?embed=true`.
+
+PS: 
+I used Langsmith developer platform to monitor and evaluate the application. It helps significantly track response time of each service call. It can be enabled by creating an API key by logging into langsmith and setting up a project here. 
+And then it is enabled by setting environment variables:
+
+```sh
+  export LANGCHAIN_TRACING_V2=true
+  export LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+  export LANGCHAIN_API_KEY=your-key
+  export LANGCHAIN_PROJECT=callback-experiments (or any chosen name)
+```
+
+
 
 
 
