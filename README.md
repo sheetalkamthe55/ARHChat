@@ -94,6 +94,7 @@ The Large Language Model (LLM) used in the application has a limited context len
     
     ```sh
      cd api/ui
+     export PYTHONPATH="your/path/to/project:$PYTHONPATH"
      streamlit run app.py
      ```
    Can use `nohup` to run streamlit as a background process
@@ -119,6 +120,10 @@ Before you begin, ensure you have the following installed:
 
    Start by cloning the project repository to your local machine. 
 
+   ```
+    cd arah
+   ```
+
 2. **Create a Models Folder**
 
    After cloning the repository, navigate into the project directory and create a folder named `models` where model files will be stored.
@@ -130,6 +135,7 @@ Before you begin, ensure you have the following installed:
 
    Create a `.streamlit` directory which will contain the password for all users in ``api\ui\metadata\user_list.scv` in a `secrets.toml` file.
    ```sh
+   cd api/ui
    mkdir .streamlit
    touch secrets.toml
    nano secrets.toml
