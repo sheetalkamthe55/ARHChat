@@ -182,14 +182,29 @@ Before you begin, ensure you have the following installed:
    This will check if NVIDIA GPU exists and accordingly use the docker compose files
 
 6. **Insert documents in Vector Database**
-
-   Script to insert documnets is in scripts directory. Execute following command with correct pdffolderpath , by default it takes the absolute path as Content directory wherein you can copy the pdf files.
+   Script checks for duplicates, by using similarity search and insert only unique chunks.
+   Script to insert documnets is in scripts directory. The script accepts several command line arguments, below is description of each:
+    * `url`: Required. The URL of the Vector Database.
+    * `--reset`: Optional. Use this flag to reset the database.
+    * `--pdf_folder_path`: Optional. Path to the folder containing PDFs to be processed. By default it takes the        absolute path as `Content` directory
+    * `--model_name`: Optional. The name of the model to use for embedding. Default is 'intfloat/e5-base-v2'.
+    * `--collection_name`: Optional. The name of the collection in the Vector Database. Default is 'ARH_Tool'.
+    * `--chunksize`: Optional. The chunk size for splitting text. Default is 512.
+    * `--chunkoverlap`: Optional. The chunk overlap for splitting text. Default is 100.
+    * `--api_key`: Optional. API key for authentication with the Vector Database. Default is None.
+   
+   Execute following command (for default configuration):
 
    ```sh
    cd scripts
    ```
    ```sh
-    python3 embeddocs.py "http://localhost:6333/" --collection_name "ARH_Tool" --chunksize 512 --chunkoverlap 100 --pdf_folder_path "/youpath/to/pdfdirectory" 
+    python3 embeddocs.py "http://localhost:6333/" 
+   ```
+   Example usage:
+   ```sh
+    python script.py "http://vectordb.example.com" --reset --pdf_folder_path "/path/to/pdfs" --model_name "intfloat/e5-base-v2" --collection_name "ARH_Tool" --chunksize 512 --chunkoverlap 100 --api_key "your_api_key"
+   ```
 
 **The app will be available on "http://localhost:8503/"**
 

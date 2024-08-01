@@ -58,12 +58,34 @@ def main(url, pdf_folder_path , model_name, collection_name,chunksize,chunkoverl
     docs_processed = split_text(docs,chunksize,chunkoverlap)
     for doc in docs_processed:
         doc.page_content = remove_emojis(doc.page_content)
+        # docslist = [doc.page_content]
     embed_model = setup_embeddings(model_name)
-    embed_documents(docs_processed, embed_model, url, api_key, collection_name)
+    # loop to check for each vector if similar vector present in the database or not, skip if document is similar, insert if not
+    client = QdrantClient(url,api_key=api_key)
+    qdrant = Qdrant(client=client, collection_name=collection_name, embeddings=embed_model)
+    vectors_config = {
+        "size": 768,
+        "distance": "Cosine" 
+    }
+    #check if collection does not exist creeate collection
+    if client.collection_exists(collection_name) == False:
+        embed_documents(docs_processed, embed_model, url, api_key, collection_name)
+    else:
+        print("Collection already exists")
+        for doc in docs_processed:
+            document, score = qdrant.similarity_search_with_score(doc.page_content,k=1,score_threshold=0.9)[0]
+            if score > 0.9:
+                print("Document already present in the database")
+                continue
+            else:
+                print("Document not present in the database")
+                embed_documents([doc], embed_model, url, api_key, collection_name)
+                print("Document embedded in the database")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Embed PDF documents.")
     parser.add_argument("url", help="URL of the Vector Database")
+    parser.add_argument("--reset", action="store_true", help="Reset the database")
     parser.add_argument("--pdf_folder_path", type=str, help="Path to read PDFs")
     parser.add_argument("--model_name", type=str, default='intfloat/e5-base-v2', help="Model name for embedding")
     parser.add_argument("--collection_name", type=str, default='ARH_Tool', help="Vector DB collection name")
@@ -72,9 +94,10 @@ if __name__ == "__main__":
     parser.add_argument("--api_key", type=str, help="API key for authentication of vectordatabase (optional)", default=None)
 
     args = parser.parse_args()
-    print("✨ Clearing Database")
-    clear_database(args.url,args.collection_name,api_key=args.api_key)
-    print("✨ Database Cleared")
+    if args.reset:
+        print("✨ Clearing Database")
+        clear_database(args.url,args.collection_name,api_key=args.api_key)
+        print("✨ Database Cleared")
     if not args.pdf_folder_path:
         args.pdf_folder_path = os.path.join(os.getcwd(), "Content")
         print("❌ No PDF folder path provided. Setting default absolute path to Content folder.", args.pdf_folder_path)
