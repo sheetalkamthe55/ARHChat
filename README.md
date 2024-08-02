@@ -20,52 +20,68 @@ The Large Language Model (LLM) used in the application has a limited context len
 ### How to Setup
 
 - Install requirements using 
-   ```sh
+```sh
    pip install -r requirements. txt
    ```
-- Ingest your data
-  ```sh
-  cd scripts
-  ```
-  Commands with `--` are optional if default parameters are to be changed.
-  ```sh
-  python3 embeddocs.py "https://localhost:6333/" --collection_name "ARH_Tool" --api_key "yourkey" --chunksize 100 --chunkoverlap 10 --pdf_folder_path "your/path/topdfs"
-  ```
+- Insert documents in Vector Database
+   Script checks for duplicates, by using similarity search and insert only unique chunks.
+   Script to insert documnets is in scripts directory. The script accepts several command line arguments, below is description of each:
+    * `url`: Required. The URL of the Vector Database.
+    * `--reset`: Optional. Use this flag to reset the database.
+    * `--pdf_folder_path`: Optional. Path to the folder containing PDFs to be processed. By default it takes the        absolute path as `Content` directory
+    * `--model_name`: Optional. The name of the model to use for embedding. Default is 'intfloat/e5-base-v2'.
+    * `--collection_name`: Optional. The name of the collection in the Vector Database. Default is 'ARH_Tool'.
+    * `--chunksize`: Optional. The chunk size for splitting text. Default is 512.
+    * `--chunkoverlap`: Optional. The chunk overlap for splitting text. Default is 100.
+    * `--api_key`: Optional. API key for authentication with the Vector Database. Default is None.
+   
+   Execute following command (with default configuration):
+
+   ```sh
+   cd scripts
+   ```
+   ```sh
+    python3 embeddocs.py "http://localhost:6333/" 
+   ```
+   Example usage:
+   ```sh
+    python script.py "http://vectordb.example.com" --reset --pdf_folder_path "/path/to/pdfs" --model_name "intfloat/e5-base-v2" --collection_name "ARH_Tool" --chunksize 512 --chunkoverlap 100 --api_key "your_api_key"
+   ```
 
   This embeds pdfs in the given path using `intfloat/e5-base-v2` embedding model into the Qdrant database.
 
 - In order to use a model hosted locally(On GPU) (no performance on CPU), we will use llama cpp.
   Also refer to this [feature matrix](https://github.com/ggerganov/llama.cpp/wiki/Feature-matrix) to understand the performance of diff quantized models vs accelerators
-  ```sh
-  CMAKE_ARGS="-DLLAMA_CUBLAS=on" 
-  pip3 install 'llama-cpp-python[server]==0.2.76'
-  ```
+```sh
+   CMAKE_ARGS="-DLLAMA_CUBLAS=on" 
+   pip3 install 'llama-cpp-python[server]==0.2.76'
+```
 - Download the LLM (in .gguf format) in e.g. `models/` directory 
 
-    **To download manualy**
+  **To download manually**
 
-      - (e.g., the Q5 quantization of Llama chat is available [here](https://huggingface.co/bartowski/    Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf?download=true))
+    - (e.g., the Q5 quantization of Llama chat is available [here](https://huggingface.co/bartowski/    Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf?download=true))
 
       - Or using huggingface-cli `pip install -U "huggingface_hub[cli]"`
 
-        ```sh
-           huggingface-cli download bartowski/Meta-Llama-3-8B-Instruct-GGUF Meta-Llama-3-8B-Instruct-Q5_K_M.gguf --local-dir ~/models --local-dir-use-symlinks False
-        ```
+```sh
+huggingface-cli download bartowski/Meta-Llama-3-8B-Instruct-GGUF Meta-Llama-3-8B-Instruct-Q5_K_M.gguf --local-dir ~/models --local-dir-use-symlinks False
+```
 
-      - Run the model on predefined port and IP
+  - Run the model on predefined port and IP
 
-        ```sh
-           python3 -m llama_cpp.server --model ~/models/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf --port <PORT> --host <Insert IP>  --n_gpu_layers 33 --n_ctx 8000 --chat_format chatml
-        ```
+ ```sh
+python3 -m llama_cpp.server --model ~/models/Meta-Llama-3-8B-Instruct-Q5_K_M.gguf --port <PORT> --host <Insert IP>  --n_gpu_layers 33 --n_ctx 8000 --chat_format chatml
+  ```
 
-    **Use Make to download model in `models/` directory**
+  **Use Make to download model in `models/` directory**
 
-      ```sh
-        mkdir models
-      ```
-      ```sh
-        make llama-3-8b
-      ```
+  ```sh
+  mkdir models
+  ```
+  ```sh
+  make llama-3-8b
+  ```
 - Files to update
    **Create Secrets file Configuration Directory**
   Create a `.streamlit` directory which will contain the password for all users in ``api\ui\metadata\user_list.scv` in a `secrets.toml` file.
